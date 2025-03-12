@@ -115,7 +115,10 @@ pub fn main() anyerror!void {
     var p2 = Player.init(2);
     var ball = Ball.init(2);
 
+    var paused = false;
+
     while (!rl.windowShouldClose()) {
+
         if (rl.isKeyDown(.w)) {
             p1.setDirection(-1);
         } else if (rl.isKeyDown(.s)) {
@@ -132,9 +135,16 @@ pub fn main() anyerror!void {
             p2.setDirection(0);
         }
 
-        p1.update();
-        p2.update();
-        ball.update();
+        if (rl.isKeyPressed(.space)) {
+            paused = !paused;
+        }
+
+
+        if (!paused) {
+            p1.update();
+            p2.update();
+            ball.update();
+        }
 
         if (rl.checkCollisionCircleRec(ball.pos, ball.radius, p1.body)) {
             ball.setXDirection(1);
@@ -151,7 +161,10 @@ pub fn main() anyerror!void {
         rl.beginDrawing();
 
         rl.clearBackground(rl.Color.black);
-        rl.drawText("Pong!", 380, 200, 20, rl.Color.light_gray);
+
+        if (paused) {
+            rl.drawText("Pong!", 380, 200, 20, rl.Color.light_gray);
+        }
 
         p1.draw();
         p2.draw();
