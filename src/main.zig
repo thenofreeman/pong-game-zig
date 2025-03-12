@@ -6,6 +6,12 @@ const Game = struct {
         .x = 800,
         .y = 450,
     },
+
+    topLeftCorner: rl.Vector2 = .{ .x = 0, .y = 0 },
+    topRightCorner: rl.Vector2 = .{ .x = 800, .y = 0, },
+    bottomLeftCorner: rl.Vector2 = .{ .x = 0, .y = 450, },
+    bottomRightCorner: rl.Vector2 = .{ .x = 800, .y = 450, },
+
 };
 
 // global
@@ -13,8 +19,7 @@ const game = Game{}; // var soon
 
 const Player = struct {
     n: u4,
-    pos: rl.Vector2,
-    dim: rl.Vector2,
+    body: rl.Rectangle,
     color: rl.Color,
 
     speed: f32 = 10,
@@ -36,8 +41,7 @@ const Player = struct {
 
         return .{
             .n = n,
-            .pos = pos,
-            .dim = dim,
+            .body = rl.Rectangle.init( pos.x, pos.y, dim.x, dim.y ),
             .color = .red,
         };
     }
@@ -47,12 +51,12 @@ const Player = struct {
     }
 
     pub fn update(self: *Player) void {
-        self.pos.x += self.velocity.x;
-        self.pos.y += self.velocity.y;
+        self.body.x += self.velocity.x;
+        self.body.y += self.velocity.y;
     }
 
     pub fn draw(self: Player) void {
-        rl.drawRectangleV(self.pos, self.dim, self.color);
+        rl.drawRectangleRec(self.body, self.color);
     }
 
 };
@@ -78,6 +82,14 @@ const Ball = struct {
             .radius = 8,
             .color = .white,
         };
+    }
+
+    pub fn setXDirection(self: *Ball, dir: i2) void {
+        self.velocity.x = @as(f32, @floatFromInt(dir)) * self.speed;
+    }
+
+    pub fn setYDirection(self: *Ball, dir: i2) void {
+        self.velocity.y = @as(f32, @floatFromInt(dir)) * self.speed;
     }
 
     pub fn update(self: *Ball) void {
@@ -124,10 +136,22 @@ pub fn main() anyerror!void {
         p2.update();
         ball.update();
 
+        if (rl.checkCollisionCircleRec(ball.pos, ball.radius, p1.body)) {
+            ball.setXDirection(1);
+        } else if (rl.checkCollisionCircleRec(ball.pos, ball.radius, p2.body)) {
+            ball.setXDirection(-1);
+        }
+
+        if (rl.checkCollisionCircleLine(ball.pos, ball.radius, game.topLeftCorner, game.topRightCorner)) {
+            ball.setYDirection(1);
+        } else if (rl.checkCollisionCircleLine(ball.pos, ball.radius, game.bottomLeftCorner, game.bottomRightCorner)) {
+            ball.setYDirection(-1);
+        }
+
         rl.beginDrawing();
 
         rl.clearBackground(rl.Color.black);
-        rl.drawText("Congrats! You created your first window!", 190, 200, 20, rl.Color.light_gray);
+        rl.drawText("Pong!", 380, 200, 20, rl.Color.light_gray);
 
         p1.draw();
         p2.draw();
