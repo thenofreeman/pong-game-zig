@@ -67,7 +67,7 @@ const Ball = struct {
     radius: f32,
     color: rl.Color,
 
-    speed: f32 = 5,
+    speed: f32 = 7,
     velocity: rl.Vector2 = .{ .x = 5, .y = 5 },
 
     pub fn init(n: u4) Ball {
@@ -115,7 +115,7 @@ pub fn main() anyerror!void {
     var p2 = Player.init(2);
     var ball = Ball.init(2);
 
-    var paused = false;
+    var paused = true;
 
     while (!rl.windowShouldClose()) {
 
@@ -162,13 +162,13 @@ pub fn main() anyerror!void {
 
         rl.clearBackground(rl.Color.black);
 
-        if (paused) {
-            rl.drawText("Pong!", 380, 200, 20, rl.Color.light_gray);
-        }
-
         p1.draw();
         p2.draw();
         ball.draw();
+
+        if (paused) {
+            rl.drawText("Pong!", 380, 200, 20, rl.Color.light_gray);
+        }
 
         rl.endDrawing();
 
