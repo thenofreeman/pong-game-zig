@@ -71,14 +71,18 @@ pub fn main() anyerror!void {
     while (!rl.windowShouldClose()) {
         if (rl.isKeyDown(.w)) {
             p1.setDirection(-1);
-
-            std.debug.print("W", .{});
         } else if (rl.isKeyDown(.s)) {
             p1.setDirection(1);
-
-            std.debug.print("S", .{});
         } else {
             p1.setDirection(0);
+        }
+
+        if (rl.isKeyDown(.up)) {
+            p2.setDirection(-1);
+        } else if (rl.isKeyDown(.down)) {
+            p2.setDirection(1);
+        } else {
+            p2.setDirection(0);
         }
 
         p1.update();
