@@ -57,6 +57,40 @@ const Player = struct {
 
 };
 
+const Ball = struct {
+    n: u4,
+    pos: rl.Vector2,
+    radius: f32,
+    color: rl.Color,
+
+    speed: f32 = 5,
+    velocity: rl.Vector2 = .{ .x = 5, .y = 5 },
+
+    pub fn init(n: u4) Ball {
+        const pos: rl.Vector2 = .{
+            .x = game.window.x / 2.0,
+            .y = game.window.y / 2.0,
+        };
+
+        return .{
+            .n = n,
+            .pos = pos,
+            .radius = 8,
+            .color = .white,
+        };
+    }
+
+    pub fn update(self: *Ball) void {
+        self.pos.x += self.velocity.x;
+        self.pos.y += self.velocity.y;
+    }
+
+    pub fn draw(self: Ball) void {
+        rl.drawCircleV(self.pos, self.radius, self.color);
+    }
+
+};
+
 pub fn main() anyerror!void {
     rl.initWindow(@intFromFloat(game.window.x),
                   @intFromFloat(game.window.y),
@@ -67,6 +101,7 @@ pub fn main() anyerror!void {
 
     var p1 = Player.init(1);
     var p2 = Player.init(2);
+    var ball = Ball.init(2);
 
     while (!rl.windowShouldClose()) {
         if (rl.isKeyDown(.w)) {
@@ -87,6 +122,7 @@ pub fn main() anyerror!void {
 
         p1.update();
         p2.update();
+        ball.update();
 
         rl.beginDrawing();
 
@@ -95,6 +131,7 @@ pub fn main() anyerror!void {
 
         p1.draw();
         p2.draw();
+        ball.draw();
 
         rl.endDrawing();
 
