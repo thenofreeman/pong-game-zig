@@ -12,12 +12,15 @@ const Game = struct {
 const game = Game{}; // var soon
 
 const Player = struct {
+    n: u4,
     pos: rl.Vector2,
     dim: rl.Vector2,
     color: rl.Color,
-    n: i4,
 
-    pub fn init(n: i4) Player {
+    speed: f32 = 10,
+    velocity: rl.Vector2 = .{ .x = 0, .y = 0 },
+
+    pub fn init(n: u4) Player {
         const dim: rl.Vector2 = .{ .x = 15, .y = 120 };
         const pos: rl.Vector2 = switch (n) {
             1 => .{
@@ -32,11 +35,20 @@ const Player = struct {
         };
 
         return .{
+            .n = n,
             .pos = pos,
             .dim = dim,
             .color = .red,
-            .n = n,
         };
+    }
+
+    pub fn setDirection(self: *Player, direction: i2) void {
+        self.velocity.y = @as(f32, @floatFromInt(direction)) * self.speed;
+    }
+
+    pub fn update(self: *Player) void {
+        self.pos.x += self.velocity.x;
+        self.pos.y += self.velocity.y;
     }
 
     pub fn draw(self: Player) void {
@@ -57,9 +69,20 @@ pub fn main() anyerror!void {
     var p2 = Player.init(2);
 
     while (!rl.windowShouldClose()) {
-        if (rl.isKeyDown(.right)) {
-            std.debug.print("RIGHT", .{});
+        if (rl.isKeyDown(.w)) {
+            p1.setDirection(-1);
+
+            std.debug.print("W", .{});
+        } else if (rl.isKeyDown(.s)) {
+            p1.setDirection(1);
+
+            std.debug.print("S", .{});
+        } else {
+            p1.setDirection(0);
         }
+
+        p1.update();
+        p2.update();
 
         rl.beginDrawing();
 
