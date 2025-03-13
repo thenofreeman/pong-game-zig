@@ -39,6 +39,8 @@ const Player = struct {
     speed: f32 = 10,
     velocity: rl.Vector2 = .{ .x = 0, .y = 0 },
 
+    score: u16 = 0,
+
     pub fn init(n: u4) Player {
         const dim: rl.Vector2 = .{ .x = 15, .y = 120 };
         const pos: rl.Vector2 = switch (n) {
@@ -53,11 +55,19 @@ const Player = struct {
             else => { @panic("NO!"); }
         };
 
-        return .{
+        var newPlayer: Player = .{
             .n = n,
             .body = rl.Rectangle.init( pos.x, pos.y, dim.x, dim.y ),
             .color = .red,
         };
+
+        newPlayer.reset();
+
+        return newPlayer;
+    }
+
+    pub fn reset(self: *Player) void {
+        self.score = 0;
     }
 
     pub fn setDirection(self: *Player, direction: i2) void {
@@ -193,9 +203,11 @@ pub fn main() anyerror!void {
                 }
 
                 if (rl.checkCollisionCircleLine(ball.pos, ball.radius, game.topLeftCorner, game.bottomLeftCorner)) {
+                    p2.score += 1;
 
                     ball.reset();
                 } else if (rl.checkCollisionCircleLine(ball.pos, ball.radius, game.topRightCorner, game.bottomRightCorner)) {
+                    p1.score += 1;
 
                     ball.reset();
                 }
@@ -208,6 +220,10 @@ pub fn main() anyerror!void {
                 p1.draw();
                 p2.draw();
                 ball.draw();
+
+                // draw player scores
+                rl.drawText("P1", 50, 50, 20, rl.Color.light_gray);
+                rl.drawText("P2", @intFromFloat(game.window.x - 50.0), 50, 20, rl.Color.light_gray);
 
             },
             .PAUSED => {
@@ -224,7 +240,6 @@ pub fn main() anyerror!void {
 
             },
             .GAMEOVER => {
-
                 if (rl.isKeyPressed(.space)) {
                     state = .MENU;
                 }
