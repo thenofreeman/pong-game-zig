@@ -150,6 +150,11 @@ pub fn main() anyerror!void {
 
     var state: State = .MENU;
 
+    var buf1: [16:0]u8 = undefined;
+    var buf2: [16:0]u8 = undefined;
+    var p1ScoreStr: [:0]u8 = try std.fmt.bufPrintZ(&buf1, "{}", .{p1.score});
+    var p2ScoreStr: [:0]u8 = try std.fmt.bufPrintZ(&buf2, "{}", .{p2.score});
+
     while (!rl.windowShouldClose()) {
 
         switch (state) {
@@ -205,9 +210,13 @@ pub fn main() anyerror!void {
                 if (rl.checkCollisionCircleLine(ball.pos, ball.radius, game.topLeftCorner, game.bottomLeftCorner)) {
                     p2.score += 1;
 
+                    p2ScoreStr = try std.fmt.bufPrintZ(&buf2, "{}", .{p2.score});
+
                     ball.reset();
                 } else if (rl.checkCollisionCircleLine(ball.pos, ball.radius, game.topRightCorner, game.bottomRightCorner)) {
                     p1.score += 1;
+
+                    p1ScoreStr = try std.fmt.bufPrintZ(&buf1, "{}", .{p1.score});
 
                     ball.reset();
                 }
@@ -222,8 +231,8 @@ pub fn main() anyerror!void {
                 ball.draw();
 
                 // draw player scores
-                rl.drawText("P1", 50, 50, 20, rl.Color.light_gray);
-                rl.drawText("P2", @intFromFloat(game.window.x - 50.0), 50, 20, rl.Color.light_gray);
+                rl.drawText(p1ScoreStr, 50, 50, 20, rl.Color.light_gray);
+                rl.drawText(p2ScoreStr, @intFromFloat(game.window.x - 50.0), 50, 20, rl.Color.light_gray);
 
             },
             .PAUSED => {
