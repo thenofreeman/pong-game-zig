@@ -1,6 +1,13 @@
 const std = @import("std");
 const rl = @import("raylib");
 
+// const rand = std.Random.DefaultPrng.init(blk: {
+//     var seed: u64 = undefined;
+//     try std.posix.getrandom(std.mem.asBytes(&seed));
+//     break :blk seed;
+// }).random();
+const rand = std.crypto.random;
+
 const State = enum {
     MENU,
     PLAYING,
@@ -78,17 +85,16 @@ const Ball = struct {
     velocity: rl.Vector2 = .{ .x = 5, .y = 5 },
 
     pub fn init(n: u4) Ball {
-        const pos: rl.Vector2 = .{
-            .x = game.window.x / 2.0,
-            .y = game.window.y / 2.0,
-        };
-
-        return .{
+        var newBall: Ball = .{
             .n = n,
-            .pos = pos,
+            .pos = undefined,
             .radius = 8,
             .color = .white,
         };
+
+        newBall.reset();
+
+        return newBall;
     }
 
     pub fn setXDirection(self: *Ball, dir: i2) void {
@@ -97,6 +103,16 @@ const Ball = struct {
 
     pub fn setYDirection(self: *Ball, dir: i2) void {
         self.velocity.y = @as(f32, @floatFromInt(dir)) * self.speed;
+    }
+
+    pub fn reset(self: *Ball) void {
+        self.pos = .{
+            .x = game.window.x / 3.0 + @as(f32, @floatFromInt(rand.intRangeAtMost(u16, 0, @intFromFloat(game.window.x / 3.0)))),
+            .y = game.window.y / 3.0 + @as(f32, @floatFromInt(rand.intRangeAtMost(u16, 0, @intFromFloat(game.window.y / 3.0)))),
+        };
+
+        self.setXDirection(if (rand.boolean()) 1 else -1);
+        self.setYDirection(if (rand.boolean()) 1 else -1);
     }
 
     pub fn update(self: *Ball) void {
@@ -174,6 +190,14 @@ pub fn main() anyerror!void {
                     ball.setYDirection(1);
                 } else if (rl.checkCollisionCircleLine(ball.pos, ball.radius, game.bottomLeftCorner, game.bottomRightCorner)) {
                     ball.setYDirection(-1);
+                }
+
+                if (rl.checkCollisionCircleLine(ball.pos, ball.radius, game.topLeftCorner, game.bottomLeftCorner)) {
+
+                    ball.reset();
+                } else if (rl.checkCollisionCircleLine(ball.pos, ball.radius, game.topRightCorner, game.bottomRightCorner)) {
+
+                    ball.reset();
                 }
 
                 rl.beginDrawing();
