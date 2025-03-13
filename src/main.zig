@@ -234,6 +234,10 @@ pub fn main() anyerror!void {
                 rl.drawText(p1ScoreStr, 50, 50, 20, rl.Color.light_gray);
                 rl.drawText(p2ScoreStr, @intFromFloat(game.window.x - 50.0), 50, 20, rl.Color.light_gray);
 
+                if (p1.score >= 7 or p2.score >= 7) {
+                    state = .GAMEOVER;
+                }
+
             },
             .PAUSED => {
                 if (rl.isKeyPressed(.space)) {
@@ -251,6 +255,11 @@ pub fn main() anyerror!void {
             .GAMEOVER => {
                 if (rl.isKeyPressed(.space)) {
                     state = .MENU;
+                    p1.reset();
+                    p2.reset();
+
+                    p1ScoreStr = try std.fmt.bufPrintZ(&buf1, "{}", .{p1.score});
+                    p2ScoreStr = try std.fmt.bufPrintZ(&buf2, "{}", .{p2.score});
                 }
 
                 rl.beginDrawing();
@@ -258,7 +267,7 @@ pub fn main() anyerror!void {
 
                 rl.clearBackground(rl.Color.black);
 
-                rl.drawText("Player X Wins!", 380, 200, 20, rl.Color.light_gray);
+                rl.drawText(if (p1.score > p2.score) "Player 1 Wins!" else "Player 2 Wins!", 340, 200, 20, rl.Color.light_gray);
             },
         }
     }
