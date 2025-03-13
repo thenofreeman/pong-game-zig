@@ -1,6 +1,13 @@
 const std = @import("std");
 const rl = @import("raylib");
 
+const State = enum {
+    MENU,
+    PLAYING,
+    PAUSED,
+    GAMEOVER,
+};
+
 const Game = struct {
     window: rl.Vector2 = .{
         .x = 800,
@@ -106,7 +113,7 @@ const Ball = struct {
 pub fn main() anyerror!void {
     rl.initWindow(@intFromFloat(game.window.x),
                   @intFromFloat(game.window.y),
-                  "raylib-zig [core] example - basic window");
+                  "Pong!");
     defer rl.closeWindow();
 
     rl.setTargetFPS(60);
@@ -115,62 +122,96 @@ pub fn main() anyerror!void {
     var p2 = Player.init(2);
     var ball = Ball.init(2);
 
-    var paused = true;
+    var state: State = .MENU;
 
     while (!rl.windowShouldClose()) {
 
-        if (rl.isKeyDown(.w)) {
-            p1.setDirection(-1);
-        } else if (rl.isKeyDown(.s)) {
-            p1.setDirection(1);
-        } else {
-            p1.setDirection(0);
+        switch (state) {
+            .MENU => {
+                if (rl.isKeyPressed(.space)) {
+                    state = .PLAYING;
+                }
+
+                rl.beginDrawing();
+                defer rl.endDrawing();
+
+                rl.clearBackground(rl.Color.black);
+
+                rl.drawText("Pong!", 380, 200, 20, rl.Color.light_gray);
+            },
+            .PLAYING => {
+                if (rl.isKeyDown(.w)) {
+                    p1.setDirection(-1);
+                } else if (rl.isKeyDown(.s)) {
+                    p1.setDirection(1);
+                } else {
+                    p1.setDirection(0);
+                }
+
+                if (rl.isKeyDown(.up)) {
+                    p2.setDirection(-1);
+                } else if (rl.isKeyDown(.down)) {
+                    p2.setDirection(1);
+                } else {
+                    p2.setDirection(0);
+                }
+
+                if (rl.isKeyPressed(.space)) {
+                    state = .PAUSED;
+                }
+
+                p1.update();
+                p2.update();
+                ball.update();
+
+                if (rl.checkCollisionCircleRec(ball.pos, ball.radius, p1.body)) {
+                    ball.setXDirection(1);
+                } else if (rl.checkCollisionCircleRec(ball.pos, ball.radius, p2.body)) {
+                    ball.setXDirection(-1);
+                }
+
+                if (rl.checkCollisionCircleLine(ball.pos, ball.radius, game.topLeftCorner, game.topRightCorner)) {
+                    ball.setYDirection(1);
+                } else if (rl.checkCollisionCircleLine(ball.pos, ball.radius, game.bottomLeftCorner, game.bottomRightCorner)) {
+                    ball.setYDirection(-1);
+                }
+
+                rl.beginDrawing();
+                defer rl.endDrawing();
+
+                rl.clearBackground(rl.Color.black);
+
+                p1.draw();
+                p2.draw();
+                ball.draw();
+
+            },
+            .PAUSED => {
+                if (rl.isKeyPressed(.space)) {
+                    state = .PLAYING;
+                }
+
+                rl.beginDrawing();
+                defer rl.endDrawing();
+
+                rl.clearBackground(rl.Color.black);
+
+                rl.drawText("Paused.", 380, 200, 20, rl.Color.light_gray);
+
+            },
+            .GAMEOVER => {
+
+                if (rl.isKeyPressed(.space)) {
+                    state = .MENU;
+                }
+
+                rl.beginDrawing();
+                defer rl.endDrawing();
+
+                rl.clearBackground(rl.Color.black);
+
+                rl.drawText("Player X Wins!", 380, 200, 20, rl.Color.light_gray);
+            },
         }
-
-        if (rl.isKeyDown(.up)) {
-            p2.setDirection(-1);
-        } else if (rl.isKeyDown(.down)) {
-            p2.setDirection(1);
-        } else {
-            p2.setDirection(0);
-        }
-
-        if (rl.isKeyPressed(.space)) {
-            paused = !paused;
-        }
-
-
-        if (!paused) {
-            p1.update();
-            p2.update();
-            ball.update();
-        }
-
-        if (rl.checkCollisionCircleRec(ball.pos, ball.radius, p1.body)) {
-            ball.setXDirection(1);
-        } else if (rl.checkCollisionCircleRec(ball.pos, ball.radius, p2.body)) {
-            ball.setXDirection(-1);
-        }
-
-        if (rl.checkCollisionCircleLine(ball.pos, ball.radius, game.topLeftCorner, game.topRightCorner)) {
-            ball.setYDirection(1);
-        } else if (rl.checkCollisionCircleLine(ball.pos, ball.radius, game.bottomLeftCorner, game.bottomRightCorner)) {
-            ball.setYDirection(-1);
-        }
-
-        rl.beginDrawing();
-
-        rl.clearBackground(rl.Color.black);
-
-        p1.draw();
-        p2.draw();
-        ball.draw();
-
-        if (paused) {
-            rl.drawText("Pong!", 380, 200, 20, rl.Color.light_gray);
-        }
-
-        rl.endDrawing();
-
     }
 }
